@@ -1,53 +1,163 @@
-# Project Overview
+# Klydo MCP Server
 
-Klydo is a fashion app designed for India's 18-32 year-olds that uses AI to help users discover and shop fashion trends quickly. An MCP (Model Context Protocol) server will enable AI assistants like Claude to interact with Klydo's fashion catalog, recommendations, and shopping features programmatically.[2]
+Fashion discovery MCP server for Indian Gen Z (18-32 age group). Enables AI assistants like Claude to search and discover fashion products from Indian e-commerce sites.
 
-## Technical Stack & Setup
+## Features
 
-Since you've already initialized with `uv` and want to use FastAPI with Pydantic, you can leverage FastMCP, which seamlessly integrates with FastAPI applications. FastMCP automatically converts your FastAPI routes into MCP tools while preserving typing, schema definitions, and Pydantic validations.[3]
+- **Search Products**: Search fashion items with filters (category, gender, price range)
+- **Product Details**: Get complete product info including images, sizes, colors, ratings
+- **Trending Products**: Discover what's popular right now
 
-## Initial Project Structure
+## Quick Start
+
+### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/yourusername/klydo-mcp-server.git
+cd klydo-mcp-server
+
+# Install dependencies with uv
+uv sync
+```
+
+### Usage with Claude Desktop
+
+Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
+
+```json
+{
+  "mcpServers": {
+    "klydo": {
+      "command": "uv",
+      "args": ["--directory", "/path/to/klydo-mcp-server", "run", "klydo"]
+    }
+  }
+}
+```
+
+Then restart Claude Desktop.
+
+### Run Standalone
+
+```bash
+uv run klydo
+```
+
+## MCP Tools
+
+### `search_products`
+
+Search for fashion products.
+
+**Parameters:**
+
+- `query` (required): Search terms (e.g., "black dress", "nike shoes")
+- `category`: Filter by category (e.g., "dresses", "shoes")
+- `gender`: Filter by gender ("men" or "women")
+- `min_price`: Minimum price in INR
+- `max_price`: Maximum price in INR
+- `limit`: Max results (default 10, max 50)
+
+### `get_product_details`
+
+Get complete product information.
+
+**Parameters:**
+
+- `product_id` (required): Product ID from search results
+
+**Returns:** Full product details including all images, sizes, colors, ratings, and purchase link.
+
+### `get_trending`
+
+Get currently trending/popular fashion products.
+
+**Parameters:**
+
+- `category`: Optional category filter
+- `limit`: Max results (default 10, max 50)
+
+## Project Structure
+
+```text
 klydo-mcp-server/
-├── app/
+├── src/klydo/
 │   ├── __init__.py
-│   ├── main.py          # FastAPI application
-│   ├── models.py        # Pydantic models
-│   ├── routes/
-│   │   ├── products.py  # Product search/browse
-│   │   ├── trends.py    # Fashion trends
-│   │   └── recommendations.py
-│   └── services/
-│       └── klydo_api.py # Klydo API integration
-├── mcp_server.py        # MCP server entry point
+│   ├── server.py          # MCP server entry point
+│   ├── config.py          # Configuration (Pydantic Settings)
+│   ├── models/
+│   │   └── product.py     # Product, Price models
+│   └── scrapers/
+│       ├── base.py        # Scraper protocol (interface)
+│       ├── cache.py       # File-based cache with TTL
+│       └── myntra.py      # Myntra scraper implementation
 ├── pyproject.toml
+├── .env.example
 └── README.md
 ```
 
-## Core MCP Tools to Implement
+## Configuration
 
-Your MCP server should expose these key capabilities:
+Copy `.env.example` to `.env` and customize:
 
-- **Product Discovery**: Search fashion items by category, trend, or style
-- **Trend Analysis**: Get current fashion trends for Gen Z audience
-- **Personalized Recommendations**: AI-powered outfit suggestions
-- **Product Details**: Retrieve detailed information about specific items
-- **Availability Check**: Check product availability and pricing
+```bash
+KLYDO_DEFAULT_SCRAPER=myntra
+KLYDO_REQUEST_TIMEOUT=30
+KLYDO_CACHE_TTL=3600
+KLYDO_DEBUG=false
+```
 
-## Implementation Approach
+## Adding New Scrapers
 
-Create your FastAPI app with standard endpoints, then wrap it with FastMCP. The FastMCP framework will inspect your app and automatically convert each route into an MCP tool. Use Python type hints and docstrings extensively, as FastMCP uses them to generate tool definitions automatically.[4][3]
+1. Create a new file in `src/klydo/scrapers/` (e.g., `ajio.py`)
+2. Implement the `ScraperProtocol` interface:
 
-For running the server, you'll use the stdio transport for local development with Claude Desktop, or HTTP/SSE transport for production deployment. The server initialization follows the pattern: `mcp = FastMCP.from_fastapi(app=server)` followed by `mcp.run()`.[5][3]
+```python
+from klydo.scrapers.base import ScraperProtocol
+from klydo.models.product import Product, ProductSummary
 
-[1](https://www.klydo.in)
-[2](https://in.linkedin.com/company/klydo-app)
-[3](https://www.speakeasy.com/mcp/framework-guides/building-fastapi-server)
-[4](https://modelcontextprotocol.io/docs/develop/build-server)
-[5](https://northflank.com/blog/how-to-build-and-deploy-a-model-context-protocol-mcp-server)
-[6](https://find-and-update.company-information.service.gov.uk/company/09689396)
-[7](https://startup-seeker.com/company/klydo~io)
-[8](https://www.instagram.com/klydo.official/)
-[9](https://ai.pydantic.dev/mcp/fastmcp-client/)
-[10](https://www.linkedin.com/company/klydo-clock)
+class AjioScraper:
+    @property
+    def source_name(self) -> str:
+        return "Ajio"
+
+    async def search(self, query: str, **filters) -> list[ProductSummary]:
+        # Implementation
+        ...
+
+    async def get_product(self, product_id: str) -> Product | None:
+        # Implementation
+        ...
+
+    async def get_trending(self, **filters) -> list[ProductSummary]:
+        # Implementation
+        ...
+
+    async def close(self) -> None:
+        # Cleanup
+        ...
+```
+
+3. Register in `src/klydo/scrapers/__init__.py`:
+
+```python
+_SCRAPERS = {
+    "myntra": MyntraScraper,
+    "ajio": AjioScraper,  # Add here
+}
+```
+
+## Development
+
+```bash
+# Install dev dependencies
+uv sync --dev
+
+# Run tests
+uv run pytest
+```
+
+## License
+
+MIT
