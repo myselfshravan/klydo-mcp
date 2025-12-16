@@ -23,8 +23,10 @@ def _register_scrapers() -> None:
     global _SCRAPERS
     if not _SCRAPERS:
         from klydo.scrapers.myntra import MyntraScraper
+        from klydo.scrapers.klydo_store import KlydoStoreScraper
 
         _SCRAPERS["myntra"] = MyntraScraper
+        _SCRAPERS["klydo"] = KlydoStoreScraper
 
 
 def get_scraper(name: str = "myntra") -> ScraperProtocol:

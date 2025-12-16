@@ -35,6 +35,10 @@ class Settings(BaseSettings):
     # Rate limiting (be nice to servers)
     requests_per_minute: int = 30
 
+    # Klydo brand API auth
+    klydo_api_token: str | None = None
+    klydo_session_id: str | None = None
+
     # Debug mode
     debug: bool = False
 

@@ -7,6 +7,7 @@ Fashion discovery MCP server for Indian Gen Z (18-32 age group). Enables AI assi
 - **Search Products**: Search fashion items with filters (category, gender, price range)
 - **Product Details**: Get complete product info including images, sizes, colors, ratings
 - **Trending Products**: Discover what's popular right now
+- **Sources**: Built-in scrapers for Myntra and the Klydo brand (klydo.in)
 
 ## Quick Start
 
@@ -43,6 +44,11 @@ Then restart Claude Desktop.
 ```bash
 uv run klydo
 ```
+
+### Switch Scraper Source
+
+- Set `KLYDO_DEFAULT_SCRAPER=klydo` in your `.env` (default is `myntra`).
+- Restart the MCP server (and Claude Desktop) so the new env is picked up.
 
 ## MCP Tools
 
@@ -106,6 +112,30 @@ KLYDO_DEFAULT_SCRAPER=myntra
 KLYDO_REQUEST_TIMEOUT=30
 KLYDO_CACHE_TTL=3600
 KLYDO_DEBUG=false
+# Optional: token for the klydo.in scraper (defaults to the observed public token)
+# KLYDO_KLYDO_API_TOKEN=your-token
+# KLYDO_KLYDO_SESSION_ID=custom-session
+```
+
+Set `KLYDO_DEFAULT_SCRAPER=klydo` to make the klydo.in scraper the default source.
+
+## Testing the Klydo scraper locally
+
+```bash
+uv run python - <<'PY'
+import asyncio
+from klydo.scrapers.klydo_store import KlydoStoreScraper
+
+
+async def main():
+    scraper = KlydoStoreScraper()
+    product = await scraper.get_product("STL_KLOIFTGI59HN8UC9YVJ8")
+    print(product)
+    await scraper.close()
+
+
+asyncio.run(main())
+PY
 ```
 
 ## Adding New Scrapers
