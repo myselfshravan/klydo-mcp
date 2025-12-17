@@ -105,7 +105,9 @@ class KlydoStoreScraper:
         )
 
         if cached := await self._cache.get(cache_key):
-            return [ProductSummary.model_validate(item) for item in cached][:limit]
+            products = [ProductSummary.model_validate(item) for item in cached][:limit]
+            await self._warm_summary_cache(products)
+            return products
 
         params: dict[str, Any] = {
             "query": query,
@@ -144,8 +146,21 @@ class KlydoStoreScraper:
                 cache_key,
                 [p.model_dump(mode="json") for p in products],
             )
+            await self._warm_summary_cache(products)
 
         return products
+
+    async def _warm_summary_cache(self, products: list[ProductSummary]) -> None:
+        """Store summaries keyed by styleId for PDP fallback."""
+        for product in products:
+            try:
+                await self._cache.set(
+                    self._cache.cache_key("summary", product.id),
+                    product.model_dump(mode="json"),
+                )
+            except Exception:
+                if settings.debug:
+                    print(f"Summary cache warm failed for {product.id}")
 
     def _parse_product_summary(self, item: dict[str, Any]) -> ProductSummary | None:
         style_id = item.get("styleId")
@@ -186,51 +201,61 @@ class KlydoStoreScraper:
         if cached := await self._cache.get(cache_key):
             return Product.model_validate(cached)
 
-        detail = await self._fetch_product_detail(product_id)
+        is_sku = product_id.startswith("SKU_")
+
+        # If we already cached a summary from a previous search, keep it for fallback
+        summary_cache_key = self._cache.cache_key("summary", product_id)
+        cached_summary = await self._cache.get(summary_cache_key)
+        summary_from_cache = (
+            ProductSummary.model_validate(cached_summary) if cached_summary else None
+        )
+
+        detail = await self._fetch_product_detail(product_id, is_sku=is_sku)
         product = None
 
         if detail:
-            product = self._parse_product_detail(detail, product_id)
+            product = self._parse_product_detail(
+                detail,
+                product_id,
+                target_sku=product_id if is_sku else None,
+            )
 
         if not product:
-            # Fallback to summary-only product
+            # Fallback to summary-only product from cache
+            if summary_from_cache:
+                product = self._product_from_summary(summary_from_cache)
+
+        if not product:
+            # As a last resort, try a search using the ID as query
             summaries = await self.search(query=product_id, limit=10)
             summary = next((s for s in summaries if s.id == product_id), None)
             if summary:
-                product = Product(
-                    id=summary.id,
-                    name=summary.name,
-                    brand=summary.brand,
-                    price=summary.price,
-                    image_url=summary.image_url,
-                    category=summary.category,
-                    source=summary.source,
-                    url=summary.url,
-                    description="",
-                    images=[ProductImage(url=summary.image_url, alt=summary.name)],
-                    sizes=[],
-                    colors=[],
-                    rating=None,
-                    review_count=0,
-                    in_stock=True,
-                    specifications={},
-                )
+                product = self._product_from_summary(summary)
 
         if product:
             await self._cache.set(cache_key, product.model_dump(mode="json"))
 
         return product
 
-    async def _fetch_product_detail(self, style_id: str) -> dict[str, Any] | None:
+    async def _fetch_product_detail(
+        self, identifier: str, is_sku: bool = False
+    ) -> dict[str, Any] | None:
         """
         Try a handful of likely PDP endpoints.
         """
-        endpoints = [
-            ("/catalog/pdp", {"styleId": style_id}),
-            ("/catalog/product", {"styleId": style_id}),
-            (f"/catalog/products/{style_id}", None),
-            (f"/catalog/styles/{style_id}", None),
-        ]
+        if is_sku:
+            endpoints = [
+                (f"/catalog/product/{identifier}", None),
+                ("/catalog/product", {"skuId": identifier}),
+                ("/catalog/pdp", {"skuId": identifier}),
+            ]
+        else:
+            endpoints = [
+                ("/catalog/pdp", {"styleId": identifier}),
+                ("/catalog/product", {"styleId": identifier}),
+                (f"/catalog/products/{identifier}", None),
+                (f"/catalog/styles/{identifier}", None),
+            ]
 
         for path, params in endpoints:
             try:
@@ -250,14 +275,28 @@ class KlydoStoreScraper:
         return None
 
     def _parse_product_detail(
-        self, data: dict[str, Any], requested_style_id: str
+        self,
+        data: dict[str, Any],
+        requested_style_id: str,
+        target_sku: str | None = None,
     ) -> Product | None:
         styles = data.get("styles") or []
+        if not styles and data.get("styleId"):
+            styles = [data]
 
         style = next(
             (s for s in styles if s.get("styleId") == requested_style_id),
             styles[0] if styles else None,
         )
+
+        if target_sku:
+            for candidate in styles:
+                for sz in candidate.get("sizes", []):
+                    if sz.get("skuId") == target_sku:
+                        style = candidate
+                        break
+                if style == candidate:
+                    break
 
         if not style:
             return None
@@ -274,7 +313,7 @@ class KlydoStoreScraper:
 
         # Choose price from selected SKU or first available size
         sizes_data = style.get("sizes", [])
-        selected_sku = data.get("selectedSkuId")
+        selected_sku = target_sku or data.get("selectedSkuId")
         size_entry = next(
             (s for s in sizes_data if s.get("skuId") == selected_sku),
             None,
@@ -305,7 +344,9 @@ class KlydoStoreScraper:
             return None
 
         sizes = [
-            s.get("size") for s in sizes_data if s.get("size") and s.get("inventory", {}).get("available", True)
+            s.get("size")
+            for s in sizes_data
+            if s.get("size") and s.get("inventory", {}).get("available", True)
         ]
 
         specifications = {
@@ -314,9 +355,11 @@ class KlydoStoreScraper:
             if spec.get("name") and spec.get("value")
         }
 
-        in_stock = any(
-            s.get("inventory", {}).get("available") for s in sizes_data
-        ) if sizes_data else True
+        in_stock = (
+            any(s.get("inventory", {}).get("available") for s in sizes_data)
+            if sizes_data
+            else True
+        )
 
         colors = []
         label = style.get("label")
@@ -340,6 +383,27 @@ class KlydoStoreScraper:
             review_count=0,
             in_stock=in_stock,
             specifications=specifications,
+        )
+
+    def _product_from_summary(self, summary: ProductSummary) -> Product:
+        """Convert a ProductSummary into a minimal Product payload."""
+        return Product(
+            id=summary.id,
+            name=summary.name,
+            brand=summary.brand,
+            price=summary.price,
+            image_url=summary.image_url,
+            category=summary.category,
+            source=summary.source,
+            url=summary.url,
+            description="",
+            images=[ProductImage(url=summary.image_url, alt=summary.name)],
+            sizes=[],
+            colors=[],
+            rating=None,
+            review_count=0,
+            in_stock=True,
+            specifications={},
         )
 
     def _build_product_url(self, style_id: str, slug: str | None) -> str:
