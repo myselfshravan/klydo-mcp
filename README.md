@@ -13,6 +13,21 @@ Fashion discovery MCP server for Indian Gen Z (18-32 age group). Enables AI assi
 
 ### Installation
 
+#### Option 1: Install from PyPI (Recommended)
+
+```bash
+# Using pip
+pip install klydo-mcp-server
+
+# Or using pipx (isolated environment)
+pipx install klydo-mcp-server
+
+# Or using uvx (no installation needed)
+uvx klydo-mcp-server
+```
+
+#### Option 2: Install from Source
+
 ```bash
 # Clone the repository
 git clone https://github.com/yourusername/klydo-mcp-server.git
@@ -24,7 +39,34 @@ uv sync
 
 ### Usage with Claude Desktop
 
-Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
+#### If installed via PyPI (pip/pipx)
+
+Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS, `%APPDATA%\Claude\claude_desktop_config.json` on Windows):
+
+```json
+{
+  "mcpServers": {
+    "klydo": {
+      "command": "klydo"
+    }
+  }
+}
+```
+
+#### If using uvx (recommended for easy updates)
+
+```json
+{
+  "mcpServers": {
+    "klydo": {
+      "command": "uvx",
+      "args": ["klydo-mcp-server"]
+    }
+  }
+}
+```
+
+#### If installed from source
 
 ```json
 {

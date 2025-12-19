@@ -4,6 +4,32 @@ version = "0.1.0"
 description = "Fashion discovery MCP server for Indian Gen Z"
 readme = "README.md"
 requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+    {name = "Klydo MCP Contributors"},
+]
+keywords = [
+    "mcp",
+    "fashion",
+    "e-commerce",
+    "ai",
+    "claude",
+    "shopping",
+    "india",
+    "myntra",
+    "klydo"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+]
 dependencies = [
     "asyncio>=4.0.0",
     "fastmcp>=2.3.0",
@@ -12,6 +38,11 @@ dependencies = [
     "pydantic-settings>=2.0.0",
     "selectolax>=0.3.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/klydo-mcp-server"
+Repository = "https://github.com/yourusername/klydo-mcp-server"
+Issues = "https://github.com/yourusername/klydo-mcp-server/issues"
 
 [project.optional-dependencies]
 dev = [
