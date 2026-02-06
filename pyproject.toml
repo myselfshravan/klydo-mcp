@@ -1,5 +1,5 @@
 [project]
-name = "klydo-mcp-server"
+name = "klydo-mcp"
 version = "0.1.3"
 description = "Fashion discovery MCP server for Indian Gen Z"
 readme = "README.md"

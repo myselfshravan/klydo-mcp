@@ -1,7 +1,7 @@
 # Klydo MCP Server
 
 [![CI](https://github.com/myselfshravan/klydo-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/myselfshravan/klydo-mcp/actions/workflows/ci.yml)
-[![PyPI version](https://badge.fury.io/py/klydo-mcp-server.svg)](https://badge.fury.io/py/klydo-mcp-server)
+[![PyPI version](https://badge.fury.io/py/klydo-mcp.svg)](https://badge.fury.io/py/klydo-mcp)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-green.svg)](https://modelcontextprotocol.io/)
@@ -27,13 +27,13 @@ Enables AI assistants like Claude to search and discover fashion products from I
 
 ```bash
 # Using pip
-pip install klydo-mcp-server
+pip install klydo-mcp
 
 # Or using pipx (isolated environment)
-pipx install klydo-mcp-server
+pipx install klydo-mcp
 
 # Or using uvx (no installation needed)
-uvx klydo-mcp-server
+uvx klydo-mcp
 ```
 
 #### Option 2: Install from Source
@@ -72,7 +72,7 @@ Add to your Claude Desktop configuration:
   "mcpServers": {
     "klydo": {
       "command": "uvx",
-      "args": ["klydo-mcp-server"]
+      "args": ["klydo-mcp"]
     }
   }
 }

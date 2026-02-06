@@ -54,7 +54,7 @@ jobs:
     
     environment:
       name: testpypi
-      url: https://test.pypi.org/p/klydo-mcp-server
+      url: https://test.pypi.org/p/klydo-mcp
 
     permissions:
       id-token: write
@@ -79,7 +79,7 @@ jobs:
     
     environment:
       name: pypi
-      url: https://pypi.org/p/klydo-mcp-server
+      url: https://pypi.org/p/klydo-mcp
 
     permissions:
       id-token: write
