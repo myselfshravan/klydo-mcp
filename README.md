@@ -104,33 +104,33 @@ uv run klydo
 
 Search for fashion products.
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `query` | string | ✅ | Search terms (e.g., "black dress", "nike shoes") |
-| `category` | string | ❌ | Filter by category (e.g., "dresses", "shoes") |
-| `gender` | string | ❌ | Filter by gender ("men" or "women") |
-| `min_price` | int | ❌ | Minimum price in INR |
-| `max_price` | int | ❌ | Maximum price in INR |
-| `limit` | int | ❌ | Max results (default 10, max 50) |
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `query` | string | **required** — Search terms (e.g., "black dress", "nike shoes") |
+| `category` | string | Filter by category (e.g., "dresses", "shoes") |
+| `gender` | string | Filter by gender ("men" or "women") |
+| `min_price` | int | Minimum price in INR |
+| `max_price` | int | Maximum price in INR |
+| `limit` | int | Max results (default 10, max 50) |
 
 ### `get_product_details`
 
 Get complete product information.
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `product_id` | string | ✅ | Product ID from search results |
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `product_id` | string | **required** — Product ID from search results |
 
-**Returns:** Full product details including all images, sizes, colors, ratings, and purchase link.
+**Returns:** Full details — images, sizes, colors, ratings, and purchase link.
 
 ### `get_trending`
 
-Get currently trending/popular fashion products.
+Discover what's hot rn 🔥
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `category` | string | ❌ | Category filter |
-| `limit` | int | ❌ | Max results (default 10, max 50) |
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `category` | string | Category filter |
+| `limit` | int | Max results (default 10, max 50) |
 
 ## ⚙️ Configuration
 
