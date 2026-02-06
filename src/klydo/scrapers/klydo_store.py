@@ -13,17 +13,9 @@ from typing import Any
 import httpx
 
 from klydo.config import settings
+from klydo.logging import logger, log_cache_hit, log_cache_miss, log_api_call, log_api_error
 from klydo.models.product import Price, Product, ProductImage, ProductSummary
 from klydo.scrapers.cache import Cache
-
-# Token observed in the network calls shared in the request. Can be overridden
-# via the KLYDO_KLYDO_API_TOKEN environment variable.
-DEFAULT_AUTH_TOKEN = (
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
-    "eyJzdWIiOiJwcm9kLmtseWRvLmNvbSIsImlzcyI6InByb2Qua2x5ZG8uY29tIiwiaWF0IjoxNzY1"
-    "NzkyNjQ2LCJ1c2VySWQiOiJVU1JfSTExVVdLSVZRMTlBUUNJSU43QVAiLCJleHAiOjE3NjgzODQ2"
-    "NDZ9.lvMv4lHRo6g5ZXOu8o1DYO0lxu1ZYJ_AZP8esIGt9cY"
-)
 
 
 class KlydoStoreScraper:
@@ -41,6 +33,7 @@ class KlydoStoreScraper:
             follow_redirects=True,
         )
         self._cache = Cache(namespace="klydo-store", default_ttl=settings.cache_ttl)
+        logger.debug(f"KlydoStoreScraper initialized | session_id={self._session_id}")
 
     @property
     def source_name(self) -> str:
@@ -53,7 +46,8 @@ class KlydoStoreScraper:
         return f"{now_ms}-{suffix}"
 
     def _get_headers(self) -> dict[str, str]:
-        token = settings.klydo_api_token or DEFAULT_AUTH_TOKEN
+        # Token must be provided via KLYDO_KLYDO_API_TOKEN environment variable
+        token = settings.klydo_api_token
 
         headers = {
             "accept": "*/*",
@@ -105,9 +99,12 @@ class KlydoStoreScraper:
         )
 
         if cached := await self._cache.get(cache_key):
+            log_cache_hit(cache_key)
             products = [ProductSummary.model_validate(item) for item in cached][:limit]
             await self._warm_summary_cache(products)
             return products
+
+        log_cache_miss(cache_key)
 
         params: dict[str, Any] = {
             "query": query,
@@ -121,12 +118,17 @@ class KlydoStoreScraper:
             params["query"] = f"{query} {category}"
 
         try:
+            log_api_call(self.source_name, "/catalog/search")
             response = await self._client.get("/catalog/search", params=params)
             response.raise_for_status()
             data = response.json()
         except httpx.HTTPError as exc:
-            if settings.debug:
-                print(f"Klydo search error: {exc}")
+            log_api_error(
+                self.source_name,
+                "/catalog/search",
+                str(exc),
+                status_code=getattr(exc.response, "status_code", None) if hasattr(exc, "response") else None,
+            )
             return []
 
         products: list[ProductSummary] = []
@@ -148,6 +150,7 @@ class KlydoStoreScraper:
             )
             await self._warm_summary_cache(products)
 
+        logger.debug(f"Klydo search complete | query={query} | results={len(products)}")
         return products
 
     async def _warm_summary_cache(self, products: list[ProductSummary]) -> None:
@@ -158,9 +161,8 @@ class KlydoStoreScraper:
                     self._cache.cache_key("summary", product.id),
                     product.model_dump(mode="json"),
                 )
-            except Exception:
-                if settings.debug:
-                    print(f"Summary cache warm failed for {product.id}")
+            except Exception as e:
+                logger.debug(f"Summary cache warm failed for {product.id}: {e}")
 
     def _parse_product_summary(self, item: dict[str, Any]) -> ProductSummary | None:
         style_id = item.get("styleId")
@@ -199,8 +201,10 @@ class KlydoStoreScraper:
     async def get_product(self, product_id: str) -> Product | None:
         cache_key = self._cache.cache_key("product", product_id)
         if cached := await self._cache.get(cache_key):
+            log_cache_hit(cache_key)
             return Product.model_validate(cached)
 
+        log_cache_miss(cache_key)
         is_sku = product_id.startswith("SKU_")
 
         # If we already cached a summary from a previous search, keep it for fallback
@@ -223,10 +227,12 @@ class KlydoStoreScraper:
         if not product:
             # Fallback to summary-only product from cache
             if summary_from_cache:
+                logger.debug(f"Using cached summary fallback for {product_id}")
                 product = self._product_from_summary(summary_from_cache)
 
         if not product:
             # As a last resort, try a search using the ID as query
+            logger.debug(f"Attempting search fallback for {product_id}")
             summaries = await self.search(query=product_id, limit=10)
             summary = next((s for s in summaries if s.id == product_id), None)
             if summary:
@@ -259,6 +265,7 @@ class KlydoStoreScraper:
 
         for path, params in endpoints:
             try:
+                log_api_call(self.source_name, path)
                 response = await self._client.get(path, params=params)
                 response.raise_for_status()
                 data = response.json()
@@ -267,11 +274,14 @@ class KlydoStoreScraper:
             except httpx.HTTPStatusError as exc:
                 if exc.response.status_code in (400, 404):
                     continue
-                if settings.debug:
-                    print(f"Klydo detail error on {path}: {exc}")
+                log_api_error(
+                    self.source_name,
+                    path,
+                    str(exc),
+                    status_code=exc.response.status_code,
+                )
             except Exception as exc:  # noqa: BLE001
-                if settings.debug:
-                    print(f"Klydo detail unexpected error on {path}: {exc}")
+                log_api_error(self.source_name, path, str(exc))
         return None
 
     def _parse_product_detail(
@@ -454,7 +464,9 @@ class KlydoStoreScraper:
         # The API does not expose a dedicated trending endpoint publicly;
         # reuse search with a sensible default query.
         query = category or "T-Shirts"
+        logger.debug(f"Klydo get_trending | query={query} | limit={limit}")
         return await self.search(query=query, limit=limit)
 
     async def close(self) -> None:
+        logger.debug("Closing KlydoStoreScraper")
         await self._client.aclose()

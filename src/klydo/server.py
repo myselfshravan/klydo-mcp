@@ -16,9 +16,12 @@ Usage with Claude Desktop:
     }
 """
 
+import time
+
 from fastmcp import FastMCP
 
 from klydo.config import settings
+from klydo.logging import logger, log_request, log_response
 from klydo.models.product import Product, ProductSummary
 from klydo.scrapers import get_scraper
 
@@ -56,6 +59,11 @@ Tips for best results:
 # Get scraper instance
 _scraper = get_scraper(settings.default_scraper)
 
+# Log server startup
+logger.info(
+    f"Klydo MCP Server initialized | scraper={settings.default_scraper} | debug={settings.debug}"
+)
+
 
 @mcp.tool
 async def search_products(
@@ -91,7 +99,18 @@ async def search_products(
     Example:
         Search for "floral dress" with max price 1500 for women
     """
-    return await _scraper.search(
+    start_time = time.time()
+    log_request(
+        "search_products",
+        query=query,
+        category=category,
+        gender=gender,
+        min_price=min_price,
+        max_price=max_price,
+        limit=limit,
+    )
+
+    result = await _scraper.search(
         query=query,
         category=category,
         gender=gender,
@@ -99,6 +118,11 @@ async def search_products(
         max_price=max_price,
         limit=min(limit, 50),
     )
+
+    duration_ms = (time.time() - start_time) * 1000
+    log_response("search_products", duration_ms, result_count=len(result))
+
+    return result
 
 
 @mcp.tool
@@ -129,7 +153,20 @@ async def get_product_details(product_id: str) -> Product | None:
     Example:
         Get details for product ID "STL_HBIVEZLO78F27UG9AFRL"
     """
-    return await _scraper.get_product(product_id)
+    start_time = time.time()
+    log_request("get_product_details", product_id=product_id)
+
+    result = await _scraper.get_product(product_id)
+
+    duration_ms = (time.time() - start_time) * 1000
+    log_response(
+        "get_product_details",
+        duration_ms,
+        found=result is not None,
+        product_id=product_id,
+    )
+
+    return result
 
 
 @mcp.tool
@@ -158,14 +195,23 @@ async def get_trending(
     Example:
         Get trending shoes, or just "get trending" for all categories
     """
-    return await _scraper.get_trending(
+    start_time = time.time()
+    log_request("get_trending", category=category, limit=limit)
+
+    result = await _scraper.get_trending(
         category=category,
         limit=min(limit, 50),
     )
 
+    duration_ms = (time.time() - start_time) * 1000
+    log_response("get_trending", duration_ms, result_count=len(result))
+
+    return result
+
 
 def main() -> None:
     """Run the MCP server."""
+    logger.info("Starting Klydo MCP Server...")
     mcp.run()
 
 

@@ -41,18 +41,7 @@ Before publishing, ensure you have:
 
 ### 2. Configure PyPI Credentials
 
-**Option A: Using environment variables (Recommended)**
-
-Add to your `~/.zshrc` or `~/.bashrc`:
-
-```bash
-export TWINE_USERNAME=__token__
-export TWINE_PASSWORD=pypi-YOUR_API_TOKEN_HERE
-```
-
-Then reload: `source ~/.zshrc`
-
-**Option B: Using .pypirc file**
+***Using .pypirc file***
 
 Create `~/.pypirc`:
 
@@ -73,6 +62,7 @@ password = pypi-YOUR_TESTPYPI_TOKEN_HERE
 ```
 
 Set proper permissions:
+
 ```bash
 chmod 600 ~/.pypirc
 ```
@@ -101,6 +91,7 @@ version = "0.1.1"  # ← Update this
 ```
 
 Follow [Semantic Versioning](https://semver.org/):
+
 - **0.1.0 → 0.1.1**: Bug fixes (PATCH)
 - **0.1.0 → 0.2.0**: New features, backward compatible (MINOR)
 - **0.1.0 → 1.0.0**: Breaking changes (MAJOR)
@@ -119,6 +110,7 @@ Issues = "https://github.com/YOUR_USERNAME/klydo-mcp-server/issues"
 ### 3. Update README.md
 
 Ensure README.md has:
+
 - Clear installation instructions
 - Usage examples
 - Configuration guide
@@ -159,6 +151,7 @@ python -m build
 ```
 
 This creates:
+
 - `dist/klydo_mcp_server-0.1.0-py3-none-any.whl` (wheel)
 - `dist/klydo-mcp-server-0.1.0.tar.gz` (source distribution)
 
@@ -184,7 +177,8 @@ twine upload dist/*
 ```
 
 You'll see output like:
-```
+
+```bash
 Uploading distributions to https://upload.pypi.org/legacy/
 Uploading klydo_mcp_server-0.1.0-py3-none-any.whl
 100% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 50.0/50.0 kB • 00:01
@@ -337,6 +331,7 @@ Follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH):
 **Problem**: Trying to upload a version that already exists on PyPI.
 
 **Solution**:
+
 1. Increment version in `pyproject.toml`
 2. Rebuild: `python -m build`
 3. Upload again: `twine upload dist/*`
@@ -348,6 +343,7 @@ Note: You cannot replace or delete versions on PyPI once uploaded.
 **Problem**: PyPI credentials not configured correctly.
 
 **Solution**:
+
 1. Verify token starts with `pypi-`
 2. Check `~/.pypirc` or environment variables
 3. Regenerate token if needed
@@ -358,6 +354,7 @@ Note: You cannot replace or delete versions on PyPI once uploaded.
 **Problem**: Token doesn't have permission for this project.
 
 **Solution**:
+
 1. For first upload, use "Entire account" scope token
 2. After first upload, create project-specific token
 3. Update credentials with new token
@@ -367,6 +364,7 @@ Note: You cannot replace or delete versions on PyPI once uploaded.
 **Problem**: PyPI uses strict CommonMark, not all GitHub Markdown features.
 
 **Solution**:
+
 1. Test locally: `python -m readme_renderer README.md`
 2. Install: `pip install readme-renderer`
 3. Avoid: HTML, GitHub-specific extensions
@@ -377,6 +375,7 @@ Note: You cannot replace or delete versions on PyPI once uploaded.
 **Problem**: PyPI CDN caching delay.
 
 **Solution**:
+
 - Wait 1-2 minutes for CDN propagation
 - Refresh the PyPI page
 - Try installation again
@@ -386,6 +385,7 @@ Note: You cannot replace or delete versions on PyPI once uploaded.
 **Problem**: Package structure mismatch.
 
 **Solution**:
+
 1. Check `pyproject.toml` → `[tool.hatch.build.targets.wheel]` → `packages = ["src/klydo"]`
 2. Verify directory structure: `src/klydo/__init__.py` exists
 3. Rebuild and test locally first

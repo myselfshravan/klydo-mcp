@@ -5,6 +5,8 @@ These models define the structure of product data returned
 by scrapers and exposed through MCP tools.
 """
 
+from __future__ import annotations
+
 from decimal import Decimal
 
 from pydantic import BaseModel, Field, HttpUrl

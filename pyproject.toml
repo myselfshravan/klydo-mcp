@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
 authors = [
-    {name = "Klydo MCP Contributors"},
+    {name = "Shravan", email = "shravan@klydo.in"},
 ]
 keywords = [
     "mcp",
@@ -31,18 +31,18 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
 ]
 dependencies = [
-    "asyncio>=4.0.0",
     "fastmcp>=2.3.0",
     "httpx>=0.27.0",
+    "loguru>=0.7.0",
     "pydantic>=2.0.0",
     "pydantic-settings>=2.0.0",
     "selectolax>=0.3.0",
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/klydo-mcp-server"
-Repository = "https://github.com/yourusername/klydo-mcp-server"
-Issues = "https://github.com/yourusername/klydo-mcp-server/issues"
+Homepage = "https://github.com/myselfshravan/klydo-mcp"
+Repository = "https://github.com/myselfshravan/klydo-mcp"
+Issues = "https://github.com/myselfshravan/klydo-mcp/issues"
 
 [project.optional-dependencies]
 dev = [
@@ -59,3 +59,9 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/klydo"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
