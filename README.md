@@ -32,7 +32,7 @@ pip install klydo-mcp
 pipx install klydo-mcp
 
 # Or using uvx (no installation needed)
-uvx klydo-mcp
+uvx --from klydo-mcp klydo
 ```
 
 #### Option 2: Install from Source
@@ -71,7 +71,7 @@ Add to your Claude Desktop configuration:
   "mcpServers": {
     "klydo": {
       "command": "uvx",
-      "args": ["klydo-mcp"]
+      "args": ["--from", "klydo-mcp", "klydo"]
     }
   }
 }
