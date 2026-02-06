@@ -13,7 +13,13 @@ from typing import Any
 import httpx
 
 from klydo.config import settings
-from klydo.logging import logger, log_cache_hit, log_cache_miss, log_api_call, log_api_error
+from klydo.logging import (
+    logger,
+    log_cache_hit,
+    log_cache_miss,
+    log_api_call,
+    log_api_error,
+)
 from klydo.models.product import Price, Product, ProductImage, ProductSummary
 from klydo.scrapers.cache import Cache
 
@@ -127,7 +133,9 @@ class KlydoStoreScraper:
                 self.source_name,
                 "/catalog/search",
                 str(exc),
-                status_code=getattr(exc.response, "status_code", None) if hasattr(exc, "response") else None,
+                status_code=getattr(exc.response, "status_code", None)
+                if hasattr(exc, "response")
+                else None,
             )
             return []
 

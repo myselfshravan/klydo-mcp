@@ -11,6 +11,7 @@ from pydantic import ValidationError
 
 from klydo.models.product import Price, Product, ProductImage, ProductSummary
 
+
 class TestPrice:
     """Tests for the Price model."""
 
@@ -63,6 +64,7 @@ class TestPrice:
         assert price.current == Decimal("999.50")
         assert price.original == Decimal("1499.99")
 
+
 class TestProductImage:
     """Tests for the ProductImage model."""
 
@@ -85,6 +87,7 @@ class TestProductImage:
         with pytest.raises(ValidationError):
             ProductImage(url="not-a-valid-url")
 
+
 class TestProductSummary:
     """Tests for the ProductSummary model."""
 
@@ -96,26 +99,35 @@ class TestProductSummary:
         assert sample_product_summary.category == "T-Shirts"
         assert sample_product_summary.source == "Klydo"
 
-    def test_product_summary_has_valid_url(self, sample_product_summary: ProductSummary):
+    def test_product_summary_has_valid_url(
+        self, sample_product_summary: ProductSummary
+    ):
         """Test that product summary has a valid URL."""
         assert str(sample_product_summary.url).startswith("https://")
 
-    def test_product_summary_has_valid_image_url(self, sample_product_summary: ProductSummary):
+    def test_product_summary_has_valid_image_url(
+        self, sample_product_summary: ProductSummary
+    ):
         """Test that product summary has a valid image URL."""
         assert str(sample_product_summary.image_url).startswith("https://")
 
-    def test_product_summary_serialization(self, sample_product_summary: ProductSummary):
+    def test_product_summary_serialization(
+        self, sample_product_summary: ProductSummary
+    ):
         """Test that product summary can be serialized to dict."""
         data = sample_product_summary.model_dump()
         assert data["id"] == "STL_TEST123"
         assert data["name"] == "Classic Black T-Shirt"
         assert "price" in data
 
-    def test_product_summary_json_serialization(self, sample_product_summary: ProductSummary):
+    def test_product_summary_json_serialization(
+        self, sample_product_summary: ProductSummary
+    ):
         """Test that product summary can be serialized to JSON."""
         json_str = sample_product_summary.model_dump_json()
         assert "STL_TEST123" in json_str
         assert "Classic Black T-Shirt" in json_str
+
 
 class TestProduct:
     """Tests for the full Product model."""
@@ -123,7 +135,10 @@ class TestProduct:
     def test_product_creation(self, sample_product: Product):
         """Test creating a full product."""
         assert sample_product.id == "STL_TEST123"
-        assert sample_product.description == "A comfortable cotton t-shirt perfect for everyday wear."
+        assert (
+            sample_product.description
+            == "A comfortable cotton t-shirt perfect for everyday wear."
+        )
         assert len(sample_product.images) == 2
         assert sample_product.sizes == ["S", "M", "L", "XL"]
         assert sample_product.colors == ["Black", "Navy", "White"]

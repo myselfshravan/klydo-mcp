@@ -50,9 +50,7 @@ def get_scraper(name: str = "myntra") -> ScraperProtocol:
 
     if name not in _SCRAPERS:
         available = list(_SCRAPERS.keys())
-        raise ValueError(
-            f"Unknown scraper: '{name}'. Available scrapers: {available}"
-        )
+        raise ValueError(f"Unknown scraper: '{name}'. Available scrapers: {available}")
 
     return _SCRAPERS[name]()
 

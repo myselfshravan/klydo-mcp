@@ -292,11 +292,13 @@ class MyntraScraper:
             # Extract price
             price_data = data.get("price", data.get("mrp", 0))
             mrp = data.get("mrp", price_data)
-            discount = data.get("discount", 0)
+            _ = data.get("discount", 0)  # noqa: F841
 
             # Handle price as int or dict
             if isinstance(price_data, dict):
-                current_price = Decimal(str(price_data.get("discounted", price_data.get("mrp", 0))))
+                current_price = Decimal(
+                    str(price_data.get("discounted", price_data.get("mrp", 0)))
+                )
                 original_price = Decimal(str(price_data.get("mrp", current_price)))
             else:
                 current_price = Decimal(str(price_data))
@@ -316,13 +318,17 @@ class MyntraScraper:
                 img = images[0] if isinstance(images[0], dict) else {"src": images[0]}
                 image_url = img.get("src", "")
                 if not image_url.startswith("http"):
-                    image_url = f"https://assets.myntassets.com/h_720,q_90,w_540/{image_url}"
+                    image_url = (
+                        f"https://assets.myntassets.com/h_720,q_90,w_540/{image_url}"
+                    )
 
             # Fallback to search image
             if not image_url:
                 image_url = data.get("searchImage", "")
                 if image_url and not image_url.startswith("http"):
-                    image_url = f"https://assets.myntassets.com/h_720,q_90,w_540/{image_url}"
+                    image_url = (
+                        f"https://assets.myntassets.com/h_720,q_90,w_540/{image_url}"
+                    )
 
             if not image_url:
                 return None
@@ -381,7 +387,9 @@ class MyntraScraper:
             img = element.css_first("img")
             image_url = ""
             if img:
-                image_url = img.attributes.get("src", img.attributes.get("data-src", ""))
+                image_url = img.attributes.get(
+                    "src", img.attributes.get("data-src", "")
+                )
 
             if not image_url:
                 return None
@@ -438,7 +446,9 @@ class MyntraScraper:
                 image_url=image_url,
                 category="Fashion",
                 source=self.source_name,
-                url=f"{self.BASE_URL}/{href.lstrip('/')}" if href else f"{self.BASE_URL}/{product_id}",
+                url=f"{self.BASE_URL}/{href.lstrip('/')}"
+                if href
+                else f"{self.BASE_URL}/{product_id}",
             )
 
         except (AttributeError, ValueError) as e:
@@ -552,7 +562,9 @@ class MyntraScraper:
                 name=name,
                 brand=brand,
                 price=Price(current=current_price, currency="INR"),
-                image_url=images[0].url if images else f"{self.BASE_URL}/placeholder.jpg",
+                image_url=images[0].url
+                if images
+                else f"{self.BASE_URL}/placeholder.jpg",
                 category="Fashion",
                 source=self.source_name,
                 url=f"{self.BASE_URL}/{product_id}",
@@ -648,9 +660,7 @@ class MyntraScraper:
             description = data.get("productDescription", "")
             if not description:
                 desc_list = data.get("articleAttributes", {})
-                description = ", ".join(
-                    f"{k}: {v}" for k, v in desc_list.items() if v
-                )
+                description = ", ".join(f"{k}: {v}" for k, v in desc_list.items() if v)
 
             primary_image = ""
             if images:
@@ -719,7 +729,9 @@ class MyntraScraper:
 
         # Build URL for trending page
         if category:
-            url = f"{self.BASE_URL}/{category.lower().replace(' ', '-')}?sort=popularity"
+            url = (
+                f"{self.BASE_URL}/{category.lower().replace(' ', '-')}?sort=popularity"
+            )
         else:
             url = f"{self.BASE_URL}/clothing?sort=popularity"
 

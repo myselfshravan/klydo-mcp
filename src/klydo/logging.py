@@ -36,10 +36,7 @@ if settings.debug:
 else:
     # Cleaner format for production
     log_format = (
-        "{time:YYYY-MM-DD HH:mm:ss} | "
-        "{level: <8} | "
-        "{name}:{function} | "
-        "{message}"
+        "{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function} | {message}"
     )
     log_level = "INFO"
 
