@@ -6,16 +6,15 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-green.svg)](https://modelcontextprotocol.io/)
 
-**Fashion discovery MCP server for Indian Gen Z (18-32 age group).** 
+**Fashion discovery MCP server for Indian Gen Z.** 
 
-Enables AI assistants like Claude to search and discover fashion products from Indian e-commerce sites. Built by [Klydo](https://klydo.in) — a Bangalore-based startup for Gen-Z quick tech fashion commerce.
+Enables AI assistants like Claude to search and discover fashion products from [Klydo](https://klydo.in) — India's Gen-Z quick tech fashion commerce platform based in Bangalore.
 
 ## ✨ Features
 
 - 🔍 **Search Products** — Search fashion items with filters (category, gender, price range)
 - 📦 **Product Details** — Get complete product info including images, sizes, colors, ratings
 - 🔥 **Trending Products** — Discover what's popular right now
-- 🛒 **Sources** — Built-in scrapers for Myntra and the Klydo brand (klydo.in)
 - 📝 **Structured Logging** — Debug-friendly logs with Loguru
 - ⚡ **Fast & Cached** — In-memory caching for quick responses
 
@@ -138,9 +137,6 @@ Get currently trending/popular fashion products.
 Copy `.env.example` to `.env` and customize:
 
 ```bash
-# Default scraper: "klydo" or "myntra"
-KLYDO_DEFAULT_SCRAPER=klydo
-
 # Request settings
 KLYDO_REQUEST_TIMEOUT=30
 KLYDO_CACHE_TTL=3600
@@ -148,7 +144,7 @@ KLYDO_CACHE_TTL=3600
 # Debug mode (set to false in production)
 KLYDO_DEBUG=false
 
-# API token for klydo.in scraper (required for Klydo scraper)
+# API token for klydo.in (required)
 KLYDO_KLYDO_API_TOKEN=your-token
 ```
 
@@ -166,8 +162,7 @@ klydo-mcp/
 │   └── scrapers/
 │       ├── base.py        # Scraper protocol (interface)
 │       ├── cache.py       # In-memory cache with TTL
-│       ├── klydo_store.py # Klydo.in scraper
-│       └── myntra.py      # Myntra scraper
+│       └── klydo_store.py # Klydo.in API client
 ├── tests/                 # Test suite
 ├── .github/workflows/     # CI/CD pipelines
 ├── pyproject.toml
@@ -223,7 +218,9 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 ## 🏢 About Klydo
 
-[Klydo](https://klydo.in) is a Bangalore-based startup building quick tech fashion commerce for Gen-Z. This MCP server is part of our mission to make fashion discovery seamless across AI interfaces.
+[Klydo](https://klydo.in) is a Bangalore-based startup building quick tech fashion commerce for Gen-Z (18-32 age group). We're making fashion discovery seamless, fast, and accessible. This MCP server extends our platform to AI assistants, enabling natural language fashion search.
+
+**Backed by innovation. Built for Gen-Z. Made in India. 🇮🇳**
 
 ---
 

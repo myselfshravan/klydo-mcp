@@ -1,7 +1,7 @@
 [project]
 name = "klydo-mcp"
-version = "0.1.3"
-description = "Fashion discovery MCP server for Indian Gen Z"
+version = "0.1.4"
+description = "Fashion discovery MCP server for Indian Gen Z - by Klydo"
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
@@ -16,8 +16,9 @@ keywords = [
     "claude",
     "shopping",
     "india",
-    "myntra",
-    "klydo"
+    "gen-z",
+    "klydo",
+    "bangalore"
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
