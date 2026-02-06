@@ -52,10 +52,11 @@ jobs:
       - name: Set up Python
         run: uv python install 3.12
 
-      - name: Create venv and install
-        run: |
-          uv sync
-          uv pip install ruff
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Install Ruff
+        run: uv pip install ruff
 
       - name: Run Ruff linter
         run: uv run ruff check src/
@@ -80,11 +81,14 @@ jobs:
       - name: Set up Python
         run: uv python install 3.12
 
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Install build
+        run: uv pip install build
+
       - name: Build package
-        run: |
-          uv sync
-          uv pip install build
-          python -m build
+        run: uv run python -m build
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
