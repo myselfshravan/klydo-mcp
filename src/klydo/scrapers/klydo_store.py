@@ -427,7 +427,7 @@ class KlydoStoreScraper:
     def _build_product_url(self, style_id: str, slug: str | None) -> str:
         if slug:
             return f"{self.WEB_BASE_URL}/p/{slug}"
-        return f"{self.WEB_BASE_URL}/style/{style_id}"
+        return f"{self.WEB_BASE_URL}/product/{style_id}"
 
     def _discount_percent(
         self, selling_price: Decimal, mrp: Decimal, provided_discount: int | None
