@@ -628,8 +628,8 @@ wheels = [
 ]
 
 [[package]]
-name = "klydo-mcp-server"
-version = "0.1.0"
+name = "klydo-mcp"
+version = "0.1.6"
 source = { editable = "." }
 dependencies = [
     { name = "fastmcp" },
