@@ -89,6 +89,7 @@ def sample_api_search_response() -> dict:
         "products": [
             {
                 "styleId": "STL_ABC123",
+                "skuId": "SKU_ABC123",
                 "title": "Cotton T-Shirt",
                 "brand": "Klydo",
                 "imageUrl": "https://cdn.klydo.in/images/1.jpg",
@@ -100,6 +101,7 @@ def sample_api_search_response() -> dict:
             },
             {
                 "styleId": "STL_DEF456",
+                "skuId": "SKU_DEF456",
                 "title": "Polo Shirt",
                 "brand": "Klydo",
                 "imageUrl": "https://cdn.klydo.in/images/2.jpg",

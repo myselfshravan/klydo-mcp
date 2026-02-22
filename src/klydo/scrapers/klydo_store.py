@@ -203,7 +203,7 @@ class KlydoStoreScraper:
             image_url=image_url,
             category=category_value,
             source=self.source_name,
-            url=self._build_product_url(style_id, item.get("slug")),
+            url=self._build_product_url(item.get("slug"), item.get("skuId")),
         )
 
     async def get_product(self, product_id: str) -> Product | None:
@@ -392,7 +392,11 @@ class KlydoStoreScraper:
             image_url=primary_image,
             category="Fashion",
             source=self.source_name,
-            url=self._build_product_url(requested_style_id, slug),
+            url=self._build_product_url(
+                slug,
+                sku_id=selected_sku
+                or (size_entry.get("skuId") if size_entry else None),
+            ),
             description=description,
             images=images or [ProductImage(url=primary_image, alt=title)],
             sizes=sizes,
@@ -424,10 +428,16 @@ class KlydoStoreScraper:
             specifications={},
         )
 
-    def _build_product_url(self, style_id: str, slug: str | None) -> str:
+    def _build_product_url(
+        self,
+        slug: str | None,
+        sku_id: str | None = None,
+    ) -> str | None:
         if slug:
             return f"{self.WEB_BASE_URL}/p/{slug}"
-        return f"{self.WEB_BASE_URL}/product/{style_id}"
+        if sku_id:
+            return f"{self.WEB_BASE_URL}/product/{sku_id}"
+        return None
 
     def _discount_percent(
         self, selling_price: Decimal, mrp: Decimal, provided_discount: int | None

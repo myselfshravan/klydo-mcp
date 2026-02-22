@@ -72,7 +72,7 @@ class ProductSummary(BaseModel):
     image_url: HttpUrl = Field(..., description="Primary product image URL")
     category: str = Field(..., description="Product category")
     source: str = Field(..., description="Scraper source (e.g., 'myntra')")
-    url: HttpUrl = Field(..., description="Direct link to product page")
+    url: HttpUrl | None = Field(None, description="Direct link to product page (only set when a valid SKU-based URL is available)")
 
 
 class Product(ProductSummary):

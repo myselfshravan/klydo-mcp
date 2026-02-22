@@ -33,13 +33,23 @@ class TestKlydoStoreScraper:
 
     def test_build_product_url_with_slug(self, scraper: KlydoStoreScraper):
         """Test URL building with slug."""
-        url = scraper._build_product_url("STL_123", "cotton-tshirt")
+        url = scraper._build_product_url("cotton-tshirt")
         assert url == "https://www.klydo.in/p/cotton-tshirt"
 
-    def test_build_product_url_without_slug(self, scraper: KlydoStoreScraper):
-        """Test URL building without slug."""
-        url = scraper._build_product_url("STL_123", None)
-        assert url == "https://www.klydo.in/style/STL_123"
+    def test_build_product_url_no_slug_no_sku(self, scraper: KlydoStoreScraper):
+        """Test URL returns None when no slug or SKU ID available."""
+        url = scraper._build_product_url(None)
+        assert url is None
+
+    def test_build_product_url_with_sku(self, scraper: KlydoStoreScraper):
+        """Test URL building with SKU ID."""
+        url = scraper._build_product_url(None, sku_id="SKU_ABC")
+        assert url == "https://www.klydo.in/product/SKU_ABC"
+
+    def test_build_product_url_slug_takes_priority(self, scraper: KlydoStoreScraper):
+        """Test that slug takes priority over SKU ID."""
+        url = scraper._build_product_url("cotton-tshirt", sku_id="SKU_ABC")
+        assert url == "https://www.klydo.in/p/cotton-tshirt"
 
     def test_to_rupees_conversion(self, scraper: KlydoStoreScraper):
         """Test paisa to rupees conversion."""
